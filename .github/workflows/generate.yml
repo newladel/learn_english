@@ -1,0 +1,907 @@
+name: Generate All Files
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tao cau truc thu muc
+        run: |
+          mkdir -p lib/models lib/data lib/screens lib/services
+          mkdir -p android/app/src/main
+
+      - name: Ghi pubspec.yaml
+        run: |
+          cat > pubspec.yaml <<'EOF'
+          name: learn_english
+          description: App hoc tieng Anh 0 den thanh thao
+          publish_to: 'none'
+          version: 1.0.0+1
+
+          environment:
+            sdk: '>=3.0.0 <4.0.0'
+
+          dependencies:
+            flutter:
+              sdk: flutter
+            cupertino_icons: ^1.0.6
+            shared_preferences: ^2.2.2
+            http: ^1.2.0
+            flutter_tts: ^4.0.2
+            speech_to_text: ^6.6.0
+
+          dev_dependencies:
+            flutter_test:
+              sdk: flutter
+            flutter_lints: ^3.0.0
+
+          flutter:
+            uses-material-design: true
+          EOF
+
+      - name: Ghi models/lesson.dart
+        run: |
+          cat > lib/models/lesson.dart <<'EOF'
+          class Skill {
+            final String type;
+            final String title;
+            final String content;
+            final List<String> questions;
+            final List<String> answers;
+            Skill({required this.type, required this.title, required this.content, required this.questions, required this.answers});
+          }
+
+          class Lesson {
+            final String id;
+            final String title;
+            final String level;
+            final List<Skill> skills;
+            Lesson({required this.id, required this.title, required this.level, required this.skills});
+          }
+
+          class Level {
+            final String code;
+            final String name;
+            final String description;
+            final List<Lesson> lessons;
+            Level({required this.code, required this.name, required this.description, required this.lessons});
+          }
+          EOF
+
+      - name: Ghi data/level_a0.dart
+        run: |
+          cat > lib/data/level_a0.dart <<'EOF'
+          import '../models/lesson.dart';
+
+          final Level levelA0 = Level(
+            code: 'A0', name: 'Mat goc', description: 'Bang chu cai, so dem, mau sac',
+            lessons: [
+              Lesson(id: 'a0_1', title: 'Bang chu cai & Phat am', level: 'A0', skills: [
+                Skill(type: 'nghe', title: 'Nghe bang chu cai', content: 'A B C D E F G H I J K L M N O P Q R S T U V W X Y Z', questions: ['Chu thu 3?', 'Chu thu 5?', 'Chu cuoi?'], answers: ['C', 'E', 'Z']),
+                Skill(type: 'noi', title: 'Doc to bang chu cai', content: 'Doc to 26 chu cai tieng Anh', questions: ['Doc 5 chu dau', 'Doc 5 chu cuoi'], answers: ['A B C D E', 'V W X Y Z']),
+                Skill(type: 'doc', title: 'Doc cau don gian', content: 'Hello. My name is Nam. I am a student.', questions: ['Ten nhan vat?', 'Nghe nghiep?'], answers: ['Nam', 'student']),
+                Skill(type: 'viet', title: 'Viet cau gioi thieu', content: 'Viet cau gioi thieu ban than', questions: ['Viet: Toi ten la ___'], answers: ['My name is ___']),
+                Skill(type: 'dich', title: 'Dich cau chao', content: 'Good morning', questions: ['Nghia tieng Viet?'], answers: ['Chao buoi sang']),
+              ]),
+              Lesson(id: 'a0_2', title: 'So dem 1-100', level: 'A0', skills: [
+                Skill(type: 'nghe', title: 'Nghe so', content: 'one, two, three, four, five, six, seven, eight, nine, ten', questions: ['So 3?', 'So 7?', 'So 10?'], answers: ['three', 'seven', 'ten']),
+                Skill(type: 'noi', title: 'Dem 1-10', content: 'Dem tu 1 den 10', questions: ['Doc to 1-10'], answers: ['one two three four five six seven eight nine ten']),
+                Skill(type: 'doc', title: 'Doc so trong cau', content: 'I have 2 cats and 3 dogs.', questions: ['May meo?', 'May cho?'], answers: ['2', '3']),
+                Skill(type: 'viet', title: 'Viet so bang chu', content: 'Viet 7 va 9 bang chu', questions: ['7 = ?', '9 = ?'], answers: ['seven', 'nine']),
+                Skill(type: 'dich', title: 'Dich tuoi', content: 'I am 20 years old', questions: ['Nghia tieng Viet?'], answers: ['Toi 20 tuoi']),
+              ]),
+              Lesson(id: 'a0_3', title: 'Mau sac & Hinh dang', level: 'A0', skills: [
+                Skill(type: 'nghe', title: 'Nghe mau sac', content: 'red, blue, green, yellow, black, white', questions: ['Mau do?', 'Mau xanh duong?'], answers: ['red', 'blue']),
+                Skill(type: 'noi', title: 'Noi mau sac', content: 'Doc to 6 mau co ban', questions: ['Doc to'], answers: ['red blue green yellow black white']),
+                Skill(type: 'doc', title: 'Doc mo ta', content: 'The sky is blue. The grass is green.', questions: ['Bau troi mau gi?', 'Co mau gi?'], answers: ['blue', 'green']),
+                Skill(type: 'viet', title: 'Viet mau', content: 'Viet: Qua tao mau do', questions: ['Viet cau'], answers: ['The apple is red']),
+                Skill(type: 'dich', title: 'Dich mau', content: 'My favorite color is blue', questions: ['Nghia tieng Viet?'], answers: ['Mau yeu thich cua toi la xanh duong']),
+              ]),
+            ],
+          );
+          EOF
+
+      - name: Ghi data/level_a1.dart
+        run: |
+          cat > lib/data/level_a1.dart <<'EOF'
+          import '../models/lesson.dart';
+
+          final Level levelA1 = Level(
+            code: 'A1', name: 'So cap', description: 'Chao hoi, gia dinh, thoi quen',
+            lessons: [
+              Lesson(id: 'a1_1', title: 'Chao hoi & Gioi thieu', level: 'A1', skills: [
+                Skill(type: 'nghe', title: 'Nghe hoi thoai', content: 'A: Hello! How are you?\nB: I am fine, thank you. And you?', questions: ['A hoi gi?', 'B tra loi?'], answers: ['How are you?', 'I am fine, thank you']),
+                Skill(type: 'noi', title: 'Thuc hanh chao hoi', content: 'Chao va hoi tham ban', questions: ['Noi: Xin chao, ban khoe khong?'], answers: ['Hello, how are you?']),
+                Skill(type: 'doc', title: 'Doc hoi thoai', content: 'Tom: Good morning, Lisa.\nLisa: Good morning, Tom. Nice to meet you.', questions: ['Chao khi nao?', 'Lisa noi gi them?'], answers: ['morning', 'Nice to meet you']),
+                Skill(type: 'viet', title: 'Viet loi chao', content: 'Viet 3 cach chao', questions: ['Viet 3 cach'], answers: ['Hello / Hi / Good morning']),
+                Skill(type: 'dich', title: 'Dich cau hoi', content: 'How old are you?', questions: ['Nghia tieng Viet?'], answers: ['Ban bao nhieu tuoi?']),
+              ]),
+              Lesson(id: 'a1_2', title: 'Gia dinh & Ban be', level: 'A1', skills: [
+                Skill(type: 'nghe', title: 'Nghe gioi thieu gia dinh', content: 'I have a father, a mother, and one sister.', questions: ['Co may chi/em gai?', 'Ke ten thanh vien?'], answers: ['1', 'father, mother, sister']),
+                Skill(type: 'noi', title: 'Noi ve gia dinh', content: 'Gioi thieu 3 thanh vien gia dinh', questions: ['Noi ve gia dinh ban'], answers: ['This is my father/mother/brother']),
+                Skill(type: 'doc', title: 'Doc doan van', content: 'My family has 4 people. We live in Hanoi.', questions: ['Gia dinh may nguoi?', 'O dau?'], answers: ['4', 'Hanoi']),
+                Skill(type: 'viet', title: 'Viet ve gia dinh', content: 'Viet 2 cau ve gia dinh', questions: ['Viet 2 cau'], answers: ['My family has ... people. We live in ...']),
+                Skill(type: 'dich', title: 'Dich ve gia dinh', content: 'I love my family very much', questions: ['Nghia tieng Viet?'], answers: ['Toi yeu gia dinh toi rat nhieu']),
+              ]),
+              Lesson(id: 'a1_3', title: 'Thoi quen hang ngay', level: 'A1', skills: [
+                Skill(type: 'nghe', title: 'Nghe thoi quen', content: 'I wake up at 6. I have breakfast at 7. I go to school at 8.', questions: ['Thuc day luc may gio?', 'An sang luc may gio?'], answers: ['6', '7']),
+                Skill(type: 'noi', title: 'Noi ve thoi quen', content: 'Ke 3 viec ban lam buoi sang', questions: ['Noi 3 viec'], answers: ['I wake up / I brush my teeth / I have breakfast']),
+                Skill(type: 'doc', title: 'Doc lich trinh', content: 'Every day, Lan goes to school at 7 AM and comes home at 5 PM.', questions: ['Lan di hoc luc may gio?', 'Ve nha luc may gio?'], answers: ['7 AM', '5 PM']),
+                Skill(type: 'viet', title: 'Viet thoi quen', content: 'Viet 3 cau ve thoi quen cua ban', questions: ['Viet 3 cau'], answers: ['I usually ... / I often ... / I always ...']),
+                Skill(type: 'dich', title: 'Dich thoi quen', content: 'I always brush my teeth before bed', questions: ['Nghia tieng Viet?'], answers: ['Toi luon danh rang truoc khi ngu']),
+              ]),
+            ],
+          );
+          EOF
+
+      - name: Ghi data/level_a2.dart
+        run: |
+          cat > lib/data/level_a2.dart <<'EOF'
+          import '../models/lesson.dart';
+
+          final Level levelA2 = Level(
+            code: 'A2', name: 'Co ban', description: 'Mua sam, an uong, chi duong',
+            lessons: [
+              Lesson(id: 'a2_1', title: 'Mua sam', level: 'A2', skills: [
+                Skill(type: 'nghe', title: 'Nghe hoi thoai mua sam', content: 'A: How much is this shirt?\nB: It is 20 dollars.\nA: Can I try it on?', questions: ['Ao gia bao nhieu?', 'A muon lam gi?'], answers: ['20 dollars', 'try it on']),
+                Skill(type: 'noi', title: 'Hoi gia', content: 'Hoi gia mot mon do', questions: ['Noi: Cai nay bao nhieu tien?'], answers: ['How much is this?']),
+                Skill(type: 'doc', title: 'Doc bang gia', content: 'T-shirt: 15 USD. Jeans: 30 USD. Shoes: 45 USD.', questions: ['Jeans gia bao nhieu?', 'Giay gia bao nhieu?'], answers: ['30 USD', '45 USD']),
+                Skill(type: 'viet', title: 'Viet cau mua sam', content: 'Viet 2 cau hoi mua hang', questions: ['Viet 2 cau'], answers: ['How much is this? / Do you have this in blue?']),
+                Skill(type: 'dich', title: 'Dich mua sam', content: 'I would like to buy this shirt', questions: ['Nghia tieng Viet?'], answers: ['Toi muon mua chiec ao nay']),
+              ]),
+              Lesson(id: 'a2_2', title: 'An uong & Nha hang', level: 'A2', skills: [
+                Skill(type: 'nghe', title: 'Nghe goi mon', content: 'Waiter: What would you like to order?\nCustomer: I would like a coffee, please.', questions: ['Khach goi gi?', 'Ai hoi?'], answers: ['coffee', 'waiter']),
+                Skill(type: 'noi', title: 'Goi mon', content: 'Goi mot mon an va do uong', questions: ['Noi: Toi muon mot tach ca phe'], answers: ['I would like a cup of coffee']),
+                Skill(type: 'doc', title: 'Doc menu', content: 'Menu: Pho 5 USD, Rice 3 USD, Coffee 2 USD, Tea 1.5 USD.', questions: ['Pho gia bao nhieu?', 'Tra gia bao nhieu?'], answers: ['5 USD', '1.5 USD']),
+                Skill(type: 'viet', title: 'Viet don goi mon', content: 'Viet 3 mon ban muon goi', questions: ['Viet 3 mon'], answers: ['I would like ... / Can I have ... / One ..., please']),
+                Skill(type: 'dich', title: 'Dich nha hang', content: 'Can I have the bill, please?', questions: ['Nghia tieng Viet?'], answers: ['Cho toi xin hoa don duoc khong?']),
+              ]),
+              Lesson(id: 'a2_3', title: 'Chi duong', level: 'A2', skills: [
+                Skill(type: 'nghe', title: 'Nghe chi duong', content: 'Go straight, then turn left at the traffic light. The bank is on your right.', questions: ['Re trai o dau?', 'Ngan hang o ben nao?'], answers: ['at the traffic light', 'on your right']),
+                Skill(type: 'noi', title: 'Hoi duong', content: 'Hoi duong den nha ga', questions: ['Noi: Lam sao de den nha ga?'], answers: ['How do I get to the train station?']),
+                Skill(type: 'doc', title: 'Doc ban do', content: 'The library is next to the park, opposite the hospital.', questions: ['Thu vien o canh gi?', 'Doi dien gi?'], answers: ['park', 'hospital']),
+                Skill(type: 'viet', title: 'Viet chi duong', content: 'Viet 3 cau chi duong', questions: ['Viet 3 cau'], answers: ['Go straight / Turn left / Turn right']),
+                Skill(type: 'dich', title: 'Dich chi duong', content: 'Excuse me, where is the nearest bus stop?', questions: ['Nghia tieng Viet?'], answers: ['Xin loi, ben xe buyt gan nhat o dau?']),
+              ]),
+            ],
+          );
+          EOF
+
+      - name: Ghi data/level_b1.dart
+        run: |
+          cat > lib/data/level_b1.dart <<'EOF'
+          import '../models/lesson.dart';
+
+          final Level levelB1 = Level(
+            code: 'B1', name: 'Trung cap', description: 'Cong viec, du lich, suc khoe',
+            lessons: [
+              Lesson(id: 'b1_1', title: 'Phong van xin viec', level: 'B1', skills: [
+                Skill(type: 'nghe', title: 'Nghe phong van', content: 'Interviewer: Tell me about yourself.\nCandidate: I have 3 years of experience in marketing.', questions: ['Ung vien co may nam kinh nghiem?', 'Linh vuc gi?'], answers: ['3 years', 'marketing']),
+                Skill(type: 'noi', title: 'Tu gioi thieu', content: 'Gioi thieu ban than trong 30 giay', questions: ['Noi: Toi co kinh nghiem ve...'], answers: ['I have experience in ...']),
+                Skill(type: 'doc', title: 'Doc mo ta cong viec', content: 'We are looking for a candidate with strong communication skills and 2+ years of experience.', questions: ['Can ky nang gi?', 'Kinh nghiem bao nhieu?'], answers: ['communication', '2+ years']),
+                Skill(type: 'viet', title: 'Viet email ung tuyen', content: 'Viet email ngan ung tuyen vi tri marketing', questions: ['Viet email'], answers: ['Dear Sir/Madam, I am writing to apply for ...']),
+                Skill(type: 'dich', title: 'Dich phong van', content: 'What are your strengths and weaknesses?', questions: ['Nghia tieng Viet?'], answers: ['Diem manh va diem yeu cua ban la gi?']),
+              ]),
+              Lesson(id: 'b1_2', title: 'Du lich & Khach san', level: 'B1', skills: [
+                Skill(type: 'nghe', title: 'Nghe dat phong', content: 'Receptionist: How many nights would you like to stay?\nGuest: Three nights, please.', questions: ['O may dem?', 'Ai hoi?'], answers: ['three', 'receptionist']),
+                Skill(type: 'noi', title: 'Dat phong', content: 'Dat phong 2 dem cho 2 nguoi', questions: ['Noi: Toi muon dat phong cho 2 nguoi'], answers: ['I would like to book a room for two']),
+                Skill(type: 'doc', title: 'Doc mo ta khach san', content: 'The hotel offers free breakfast, Wi-Fi, and a swimming pool.', questions: ['Co gi mien phi?', 'Co tien nghi gi?'], answers: ['breakfast, Wi-Fi', 'swimming pool']),
+                Skill(type: 'viet', title: 'Viet email dat phong', content: 'Viet email dat phong 3 dem', questions: ['Viet email'], answers: ['I would like to book a room for 3 nights from ...']),
+                Skill(type: 'dich', title: 'Dich du lich', content: 'Could you recommend a good restaurant nearby?', questions: ['Nghia tieng Viet?'], answers: ['Ban co the gioi thieu mot nha hang ngon gan day khong?']),
+              ]),
+              Lesson(id: 'b1_3', title: 'Suc khoe & Bac si', level: 'B1', skills: [
+                Skill(type: 'nghe', title: 'Nghe kham benh', content: 'Doctor: What seems to be the problem?\nPatient: I have a headache and a fever.', questions: ['Benh nhan bi gi?', 'Ai hoi?'], answers: ['headache and fever', 'doctor']),
+                Skill(type: 'noi', title: 'Mo ta trieu chung', content: 'Noi ban bi dau dau va sot', questions: ['Noi: Toi bi dau dau'], answers: ['I have a headache']),
+                Skill(type: 'doc', title: 'Doc don thuoc', content: 'Take this medicine twice a day after meals.', questions: ['Uong may lan/ngay?', 'Uong khi nao?'], answers: ['twice', 'after meals']),
+                Skill(type: 'viet', title: 'Viet tin nhan xin nghi', content: 'Viet tin nhan xin nghi om', questions: ['Viet tin nhan'], answers: ['I am feeling unwell and cannot come to work today']),
+                Skill(type: 'dich', title: 'Dich suc khoe', content: 'You should see a doctor as soon as possible', questions: ['Nghia tieng Viet?'], answers: ['Ban nen di kham bac si cang som cang tot']),
+              ]),
+            ],
+          );
+          EOF
+
+      - name: Ghi data/level_b2.dart
+        run: |
+          cat > lib/data/level_b2.dart <<'EOF'
+          import '../models/lesson.dart';
+
+          final Level levelB2 = Level(
+            code: 'B2', name: 'Kha', description: 'Cong nghe, moi truong, giao duc',
+            lessons: [
+              Lesson(id: 'b2_1', title: 'Cong nghe & Internet', level: 'B2', skills: [
+                Skill(type: 'nghe', title: 'Nghe ve AI', content: 'Artificial intelligence is transforming many industries, from healthcare to finance.', questions: ['AI dang thay doi nganh nao?', 'Ke 2 nganh'], answers: ['healthcare, finance']),
+                Skill(type: 'noi', title: 'Thao luan cong nghe', content: 'Noi ve loi ich va rui ro cua AI', questions: ['Noi 2 loi ich, 1 rui ro'], answers: ['AI improves efficiency / It can replace jobs']),
+                Skill(type: 'doc', title: 'Doc bai viet', content: 'Social media has changed how people communicate, but it also raises privacy concerns.', questions: ['Social media thay doi gi?', 'Van de gi?'], answers: ['communication', 'privacy']),
+                Skill(type: 'viet', title: 'Viet doan van', content: 'Viet 5 cau ve anh huong cua Internet', questions: ['Viet 5 cau'], answers: ['The Internet has ... / It allows people to ... / However, ...']),
+                Skill(type: 'dich', title: 'Dich cong nghe', content: 'The company is investing heavily in research and development', questions: ['Nghia tieng Viet?'], answers: ['Cong ty dang dau tu manh vao nghien cuu va phat trien']),
+              ]),
+              Lesson(id: 'b2_2', title: 'Moi truong', level: 'B2', skills: [
+                Skill(type: 'nghe', title: 'Nghe ve bien doi khi hau', content: 'Climate change is causing more frequent extreme weather events around the world.', questions: ['Hau qua chinh?', 'Pham vi anh huong?'], answers: ['extreme weather', 'around the world']),
+                Skill(type: 'noi', title: 'Thao luan moi truong', content: 'Noi 3 cach bao ve moi truong', questions: ['Noi 3 cach'], answers: ['Reduce plastic / Recycle / Use public transport']),
+                Skill(type: 'doc', title: 'Doc bao moi truong', content: 'Renewable energy sources such as solar and wind power are becoming cheaper every year.', questions: ['Nguon nang luong nao?', 'Xu huong gia?'], answers: ['solar, wind', 'cheaper']),
+                Skill(type: 'viet', title: 'Viet luan moi truong', content: 'Viet 5 cau ve tam quan trong cua bao ve moi truong', questions: ['Viet 5 cau'], answers: ['Protecting the environment is ... / We should ...']),
+                Skill(type: 'dich', title: 'Dich moi truong', content: 'Governments must take action to reduce carbon emissions', questions: ['Nghia tieng Viet?'], answers: ['Cac chinh phu phai hanh dong de giam khi thai carbon']),
+              ]),
+              Lesson(id: 'b2_3', title: 'Giao duc & Su nghiep', level: 'B2', skills: [
+                Skill(type: 'nghe', title: 'Nghe ve hoc tap', content: 'Lifelong learning is essential in the rapidly changing job market.', questions: ['Hoc tap gi?', 'Tai sao can?'], answers: ['lifelong learning', 'changing job market']),
+                Skill(type: 'noi', title: 'Thao luan su nghiep', content: 'Noi ve ke hoach su nghiep 5 nam toi', questions: ['Noi ke hoach'], answers: ['In 5 years, I want to ...']),
+                Skill(type: 'doc', title: 'Doc ve giao duc', content: 'Online education has made learning more accessible, but it requires strong self-discipline.', questions: ['Uu diem?', 'Yeu cau gi?'], answers: ['accessible', 'self-discipline']),
+                Skill(type: 'viet', title: 'Viet ve su nghiep', content: 'Viet 5 cau ve muc tieu su nghiep', questions: ['Viet 5 cau'], answers: ['My career goal is ... / I plan to ...']),
+                Skill(type: 'dich', title: 'Dich giao duc', content: 'Education is the most powerful weapon to change the world', questions: ['Nghia tieng Viet?'], answers: ['Giao duc la vu khi manh me nhat de thay doi the gioi']),
+              ]),
+            ],
+          );
+          EOF
+
+      - name: Ghi data/level_c1.dart
+        run: |
+          cat > lib/data/level_c1.dart <<'EOF'
+          import '../models/lesson.dart';
+
+          final Level levelC1 = Level(
+            code: 'C1', name: 'Thanh thao', description: 'Kinh doanh, hoc thuat, tranh luan',
+            lessons: [
+              Lesson(id: 'c1_1', title: 'Dam phan kinh doanh', level: 'C1', skills: [
+                Skill(type: 'nghe', title: 'Nghe dam phan', content: 'A: We are prepared to offer a 10% discount if you commit to a two-year contract.\nB: That sounds reasonable, but we need more flexibility on payment terms.', questions: ['Dieu kien giam gia?', 'B yeu cau gi?'], answers: ['2-year contract', 'flexibility on payment']),
+                Skill(type: 'noi', title: 'Dam phan', content: 'Dam phan gia voi doi tac', questions: ['Noi: Chung toi co the chap nhan neu...'], answers: ['We can accept if you ...']),
+                Skill(type: 'doc', title: 'Doc hop dong', content: 'Either party may terminate this agreement with 30 days written notice.', questions: ['Can bao truoc bao lau?', 'Hinh thuc?'], answers: ['30 days', 'written notice']),
+                Skill(type: 'viet', title: 'Viet de xuat', content: 'Viet de xuat kinh doanh 5 cau', questions: ['Viet de xuat'], answers: ['We propose ... / Our offer includes ... / We believe ...']),
+                Skill(type: 'dich', title: 'Dich kinh doanh', content: 'We look forward to a mutually beneficial partnership', questions: ['Nghia tieng Viet?'], answers: ['Chung toi mong doi mot moi quan he hop tac doi ben cung co loi']),
+              ]),
+              Lesson(id: 'c1_2', title: 'Viet hoc thuat', level: 'C1', skills: [
+                Skill(type: 'nghe', title: 'Nghe bai giang', content: 'The research methodology employed in this study combines qualitative interviews with quantitative surveys.', questions: ['Phuong phap gi?', 'Ket hop gi?'], answers: ['research methodology', 'qualitative + quantitative']),
+                Skill(type: 'noi', title: 'Thuyet trinh', content: 'Trinh bay quan diem hoc thuat', questions: ['Noi: Theo nghien cuu, ...'], answers: ['According to research, ...']),
+                Skill(type: 'doc', title: 'Doc bai bao khoa hoc', content: 'The findings suggest a strong correlation between socioeconomic status and educational outcomes.', questions: ['Tuong quan giua gi?', 'Ket luan?'], answers: ['socioeconomic status + education', 'strong correlation']),
+                Skill(type: 'viet', title: 'Viet luan hoc thuat', content: 'Viet mo bai cho bai luan ve AI va viec lam', questions: ['Viet mo bai'], answers: ['This essay examines ... / It argues that ...']),
+                Skill(type: 'dich', title: 'Dich hoc thuat', content: 'The study provides compelling evidence to support this hypothesis', questions: ['Nghia tieng Viet?'], answers: ['Nghien cuu cung cap bang chung thuyet phuc ung ho gia thuyet nay']),
+              ]),
+              Lesson(id: 'c1_3', title: 'Tranh luan & Thuyet phuc', level: 'C1', skills: [
+                Skill(type: 'nghe', title: 'Nghe tranh luan', content: 'While I acknowledge the merits of your argument, I must respectfully disagree with your conclusion.', questions: ['Nguoi noi thua nhan gi?', 'Ho lam gi?'], answers: ['merits of argument', 'respectfully disagree']),
+                Skill(type: 'noi', title: 'Phan bien', content: 'Phan bien mot quan diem', questions: ['Noi: Toi hieu quan diem cua ban, nhung...'], answers: ['I understand your point, but ...']),
+                Skill(type: 'doc', title: 'Doc bai tranh luan', content: 'Critics argue that the policy is well-intentioned but ultimately counterproductive.', questions: ['Chi trich gi?', 'Ket luan?'], answers: ['well-intentioned', 'counterproductive']),
+                Skill(type: 'viet', title: 'Viet phan bien', content: 'Viet 5 cau phan bien ve mang xa hoi', questions: ['Viet 5 cau'], answers: ['While social media has ... / Nevertheless, ... / In conclusion, ...']),
+                Skill(type: 'dich', title: 'Dich tranh luan', content: 'It is imperative that we address this issue without further delay', questions: ['Nghia tieng Viet?'], answers: ['Dieu cap thiet la chung ta phai giai quyet van de nay khong cham tre']),
+              ]),
+            ],
+          );
+          EOF
+
+      - name: Ghi data/roadmap_data.dart
+        run: |
+          cat > lib/data/roadmap_data.dart <<'EOF'
+          import '../models/lesson.dart';
+          import 'level_a0.dart';
+          import 'level_a1.dart';
+          import 'level_a2.dart';
+          import 'level_b1.dart';
+          import 'level_b2.dart';
+          import 'level_c1.dart';
+
+          final List<Level> roadmap = [
+            levelA0,
+            levelA1,
+            levelA2,
+            levelB1,
+            levelB2,
+            levelC1,
+          ];
+          EOF
+
+      - name: Ghi services/progress_service.dart
+        run: |
+          cat > lib/services/progress_service.dart <<'EOF'
+          import 'package:shared_preferences/shared_preferences.dart';
+
+          class ProgressService {
+            static const _keyDone = 'done_lessons';
+            static const _keyStreak = 'streak';
+            static const _keyLastDay = 'last_day';
+
+            static Future<Set<String>> getDoneLessons() async {
+              final prefs = await SharedPreferences.getInstance();
+              return (prefs.getStringList(_keyDone) ?? []).toSet();
+            }
+
+            static Future<void> markDone(String lessonId) async {
+              final prefs = await SharedPreferences.getInstance();
+              final list = (prefs.getStringList(_keyDone) ?? []).toSet();
+              list.add(lessonId);
+              await prefs.setStringList(_keyDone, list.toList());
+              await _updateStreak();
+            }
+
+            static Future<int> getStreak() async {
+              final prefs = await SharedPreferences.getInstance();
+              return prefs.getInt(_keyStreak) ?? 0;
+            }
+
+            static Future<void> _updateStreak() async {
+              final prefs = await SharedPreferences.getInstance();
+              final today = DateTime.now().toIso8601String().substring(0, 10);
+              final last = prefs.getString(_keyLastDay);
+              if (last == today) return;
+
+              int streak = prefs.getInt(_keyStreak) ?? 0;
+              if (last != null) {
+                final lastDate = DateTime.parse(last);
+                final diff = DateTime.now().difference(lastDate).inDays;
+                streak = (diff == 1) ? streak + 1 : 1;
+              } else {
+                streak = 1;
+              }
+              await prefs.setInt(_keyStreak, streak);
+              await prefs.setString(_keyLastDay, today);
+            }
+          }
+          EOF
+
+      - name: Ghi services/ai_service.dart
+        run: |
+          cat > lib/services/ai_service.dart <<'EOF'
+          import 'dart:convert';
+          import 'package:http/http.dart' as http;
+
+          class AiService {
+            static const String apiKey = 'YOUR_GEMINI_API_KEY';
+            static const String endpoint =
+                'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+
+            static Future<String> ask(String prompt) async {
+              if (apiKey == 'YOUR_GEMINI_API_KEY') {
+                return '(Chua cau hinh API key. Vao lib/services/ai_service.dart de them.)';
+              }
+              try {
+                final res = await http.post(
+                  Uri.parse('$endpoint?key=$apiKey'),
+                  headers: {'Content-Type': 'application/json'},
+                  body: jsonEncode({
+                    'contents': [
+                      {
+                        'parts': [
+                          {'text': prompt}
+                        ]
+                      }
+                    ]
+                  }),
+                );
+                final data = jsonDecode(res.body);
+                return data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+              } catch (e) {
+                return 'Loi AI: $e';
+              }
+            }
+
+            static Future<String> correctEnglish(String text) =>
+                ask('Sua loi tieng Anh sau va giai thich ngan gon: "$text"');
+
+            static Future<String> translate(String text) =>
+                ask('Dich sang tieng Viet: "$text"');
+          }
+          EOF
+
+      - name: Ghi screens/home_screen.dart
+        run: |
+          cat > lib/screens/home_screen.dart <<'EOF'
+          import 'package:flutter/material.dart';
+          import '../services/progress_service.dart';
+          import 'roadmap_screen.dart';
+          import 'translate_screen.dart';
+
+          class HomeScreen extends StatefulWidget {
+            const HomeScreen({super.key});
+            @override
+            State<HomeScreen> createState() => _HomeScreenState();
+          }
+
+          class _HomeScreenState extends State<HomeScreen> {
+            int streak = 0;
+            int done = 0;
+
+            @override
+            void initState() {
+              super.initState();
+              _load();
+            }
+
+            Future<void> _load() async {
+              final s = await ProgressService.getStreak();
+              final d = await ProgressService.getDoneLessons();
+              setState(() {
+                streak = s;
+                done = d.length;
+              });
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text('Hoc Tieng Anh 0 -> Thanh thao'),
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
+                ),
+                body: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Row(children: [
+                      _statCard('Streak', '$streak ngay', Colors.orange),
+                      const SizedBox(width: 12),
+                      _statCard('Da hoc', '$done bai', Colors.green),
+                    ]),
+                    const SizedBox(height: 24),
+                    _bigButton(
+                      icon: Icons.map,
+                      title: 'Lo trinh hoc',
+                      subtitle: 'A0 -> C1, du 5 ky nang',
+                      color: Colors.indigo,
+                      onTap: () async {
+                        await Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => const RoadmapScreen()));
+                        _load();
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _bigButton(
+                      icon: Icons.translate,
+                      title: 'Dich Anh - Viet',
+                      subtitle: 'Dich nhanh + doc to',
+                      color: Colors.teal,
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const TranslateScreen())),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            Widget _statCard(String label, String value, Color color) {
+              return Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(children: [
+                    Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  ]),
+                ),
+              );
+            }
+
+            Widget _bigButton({
+              required IconData icon,
+              required String title,
+              required String subtitle,
+              required Color color,
+              required VoidCallback onTap,
+            }) {
+              return InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(16)),
+                  child: Row(children: [
+                    Icon(icon, color: Colors.white, size: 36),
+                    const SizedBox(width: 16),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(subtitle, style: const TextStyle(color: Colors.white70)),
+                    ])),
+                    const Icon(Icons.chevron_right, color: Colors.white),
+                  ]),
+                ),
+              );
+            }
+          }
+          EOF
+
+      - name: Ghi screens/roadmap_screen.dart
+        run: |
+          cat > lib/screens/roadmap_screen.dart <<'EOF'
+          import 'package:flutter/material.dart';
+          import '../data/roadmap_data.dart';
+          import '../services/progress_service.dart';
+          import 'lesson_screen.dart';
+
+          class RoadmapScreen extends StatefulWidget {
+            const RoadmapScreen({super.key});
+            @override
+            State<RoadmapScreen> createState() => _RoadmapScreenState();
+          }
+
+          class _RoadmapScreenState extends State<RoadmapScreen> {
+            Set<String> done = {};
+
+            @override
+            void initState() {
+              super.initState();
+              _load();
+            }
+
+            Future<void> _load() async {
+              final d = await ProgressService.getDoneLessons();
+              setState(() => done = d);
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text('Lo trinh hoc'),
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
+                ),
+                body: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: roadmap.length,
+                  itemBuilder: (_, i) {
+                    final level = roadmap[i];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: ExpansionTile(
+                        title: Text('${level.code} - ${level.name}',
+                            style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(level.description),
+                        children: level.lessons.map((lesson) {
+                          final isDone = done.contains(lesson.id);
+                          return ListTile(
+                            leading: Icon(
+                              isDone ? Icons.check_circle : Icons.radio_button_unchecked,
+                              color: isDone ? Colors.green : Colors.grey,
+                            ),
+                            title: Text(lesson.title),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () async {
+                              await Navigator.push(context,
+                                  MaterialPageRoute(builder: (_) => LessonScreen(lesson: lesson)));
+                              _load();
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
+              );
+            }
+          }
+          EOF
+
+      - name: Ghi screens/lesson_screen.dart
+        run: |
+          cat > lib/screens/lesson_screen.dart <<'EOF'
+          import 'package:flutter/material.dart';
+          import '../models/lesson.dart';
+          import '../services/progress_service.dart';
+          import 'skill_screen.dart';
+
+          class LessonScreen extends StatelessWidget {
+            final Lesson lesson;
+            const LessonScreen({super.key, required this.lesson});
+
+            IconData _icon(String type) {
+              switch (type) {
+                case 'nghe': return Icons.headphones;
+                case 'noi': return Icons.mic;
+                case 'doc': return Icons.menu_book;
+                case 'viet': return Icons.edit;
+                case 'dich': return Icons.translate;
+                default: return Icons.circle;
+              }
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: Text(lesson.title),
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
+                ),
+                body: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    ...lesson.skills.map((s) => Card(
+                          child: ListTile(
+                            leading: Icon(_icon(s.type), color: Colors.indigo),
+                            title: Text(s.title),
+                            subtitle: Text(s.type.toUpperCase()),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => Navigator.push(context,
+                                MaterialPageRoute(builder: (_) => SkillScreen(skill: s))),
+                          ),
+                        )),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.check),
+                      label: const Text('Danh dau da hoan thanh bai nay'),
+                      onPressed: () async {
+                        await ProgressService.markDone(lesson.id);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Da luu tien do!')),
+                          );
+                          Navigator.pop(context);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              );
+            }
+          }
+          EOF
+
+      - name: Ghi screens/skill_screen.dart
+        run: |
+          cat > lib/screens/skill_screen.dart <<'EOF'
+          import 'package:flutter/material.dart';
+          import 'package:flutter_tts/flutter_tts.dart';
+          import 'package:speech_to_text/speech_to_text.dart' as stt;
+          import '../models/lesson.dart';
+          import '../services/ai_service.dart';
+
+          class SkillScreen extends StatefulWidget {
+            final Skill skill;
+            const SkillScreen({super.key, required this.skill});
+            @override
+            State<SkillScreen> createState() => _SkillScreenState();
+          }
+
+          class _SkillScreenState extends State<SkillScreen> {
+            final FlutterTts _tts = FlutterTts();
+            final stt.SpeechToText _speech = stt.SpeechToText();
+            bool _listening = false;
+            String _spoken = '';
+            String _aiResult = '';
+
+            @override
+            void initState() {
+              super.initState();
+              _tts.setLanguage('en-US');
+              _tts.setSpeechRate(0.45);
+            }
+
+            Future<void> _listen() async {
+              if (!_listening) {
+                final ok = await _speech.initialize();
+                if (ok) {
+                  setState(() { _listening = true; _spoken = ''; });
+                  _speech.listen(localeId: 'en_US',
+                      onResult: (r) => setState(() => _spoken = r.recognizedWords));
+                }
+              } else {
+                setState(() => _listening = false);
+                _speech.stop();
+                final res = await AiService.correctEnglish(_spoken);
+                setState(() => _aiResult = res);
+              }
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              final s = widget.skill;
+              return Scaffold(
+                appBar: AppBar(
+                  title: Text(s.title),
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
+                ),
+                body: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Noi dung', style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        Text(s.content, style: const TextStyle(fontSize: 16)),
+                        const SizedBox(height: 12),
+                        Row(children: [
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.volume_up),
+                            label: const Text('Nghe'),
+                            onPressed: () => _tts.speak(s.content),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            icon: Icon(_listening ? Icons.stop : Icons.mic),
+                            label: Text(_listening ? 'Dung' : 'Noi'),
+                            onPressed: _listen,
+                          ),
+                        ]),
+                      ],
+                    ))),
+                    if (_spoken.isNotEmpty)
+                      Card(color: Colors.blue.shade50,
+                          child: Padding(padding: const EdgeInsets.all(16), child: Text('Ban noi: $_spoken'))),
+                    if (_aiResult.isNotEmpty)
+                      Card(color: Colors.green.shade50,
+                          child: Padding(padding: const EdgeInsets.all(16), child: Text('AI: $_aiResult'))),
+                    const SizedBox(height: 16),
+                    const Text('Cau hoi luyen tap:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ...s.questions.asMap().entries.map((e) => Card(
+                          child: ListTile(
+                            title: Text(e.value),
+                            trailing: TextButton(
+                              child: const Text('Dap an'),
+                              onPressed: () {
+                                showDialog(context: context, builder: (_) => AlertDialog(
+                                  title: const Text('Dap an'),
+                                  content: Text(s.answers[e.key]),
+                                  actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+                                ));
+                              },
+                            ),
+                          ),
+                        )),
+                  ],
+                ),
+              );
+            }
+          }
+          EOF
+
+      - name: Ghi screens/translate_screen.dart
+        run: |
+          cat > lib/screens/translate_screen.dart <<'EOF'
+          import 'package:flutter/material.dart';
+          import 'package:flutter_tts/flutter_tts.dart';
+          import '../services/ai_service.dart';
+
+          class TranslateScreen extends StatefulWidget {
+            const TranslateScreen({super.key});
+            @override
+            State<TranslateScreen> createState() => _TranslateScreenState();
+          }
+
+          class _TranslateScreenState extends State<TranslateScreen> {
+            final _controller = TextEditingController();
+            final _tts = FlutterTts();
+            String _result = '';
+            bool _loading = false;
+
+            Future<void> _translate() async {
+              if (_controller.text.isEmpty) return;
+              setState(() => _loading = true);
+              final r = await AiService.translate(_controller.text);
+              setState(() { _result = r; _loading = false; });
+            }
+
+            @override
+            void dispose() {
+              _controller.dispose();
+              super.dispose();
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text('Dich Anh - Viet'),
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                ),
+                body: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(children: [
+                    TextField(
+                      controller: _controller,
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Nhap cau tieng Anh...',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(children: [
+                      ElevatedButton.icon(icon: const Icon(Icons.translate), label: const Text('Dich'), onPressed: _translate),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(icon: const Icon(Icons.volume_up), label: const Text('Doc'), onPressed: () => _tts.speak(_controller.text)),
+                    ]),
+                    const SizedBox(height: 20),
+                    if (_loading) const CircularProgressIndicator(),
+                    if (_result.isNotEmpty)
+                      Card(color: Colors.teal.shade50,
+                          child: Padding(padding: const EdgeInsets.all(16), child: Text(_result, style: const TextStyle(fontSize: 16)))),
+                  ]),
+                ),
+              );
+            }
+          }
+          EOF
+
+      - name: Ghi main.dart
+        run: |
+          cat > lib/main.dart <<'EOF'
+          import 'package:flutter/material.dart';
+          import 'screens/home_screen.dart';
+
+          void main() {
+            runApp(const MyApp());
+          }
+
+          class MyApp extends StatelessWidget {
+            const MyApp({super.key});
+            @override
+            Widget build(BuildContext context) {
+              return MaterialApp(
+                title: 'Learn English',
+                debugShowCheckedModeBanner: false,
+                theme: ThemeData(
+                  colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+                  useMaterial3: true,
+                ),
+                home: const HomeScreen(),
+              );
+            }
+          }
+          EOF
+
+      - name: Ghi AndroidManifest.xml
+        run: |
+          cat > android/app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+              <uses-permission android:name="android.permission.INTERNET"/>
+              <application
+                  android:label="Learn English"
+                  android:name="${applicationName}"
+                  android:icon="@mipmap/ic_launcher">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:launchMode="singleTop"
+                      android:theme="@style/LaunchTheme"
+                      android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+                      android:hardwareAccelerated="true"
+                      android:windowSoftInputMode="adjustResize">
+                      <meta-data
+                        android:name="io.flutter.embedding.android.NormalTheme"
+                        android:resource="@style/NormalTheme"
+                        />
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+                  </activity>
+                  <meta-data
+                      android:name="flutterEmbedding"
+                      android:value="2" />
+              </application>
+          </manifest>
+          EOF
+
+      - name: Ghi .gitignore
+        run: |
+          cat > .gitignore <<'EOF'
+          .dart_tool/
+          .packages
+          build/
+          .flutter-plugins
+          .flutter-plugins-dependencies
+          *.iml
+          .idea/
+          .vscode/
+          EOF
+
+      - name: Commit va push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Generate all project files" || echo "No changes"
+          git push
