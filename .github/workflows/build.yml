@@ -27,6 +27,13 @@ jobs:
       - name: Tao lai android moi
         run: flutter create . --project-name learn_english --org com.example --platforms=android
 
+      - name: Sua minSdkVersion len 24
+        run: |
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/' android/app/build.gradle
+          sed -i 's/minSdkVersion 21/minSdkVersion 24/' android/app/build.gradle
+          echo "=== android/app/build.gradle ==="
+          cat android/app/build.gradle
+
       - name: Ghi lai AndroidManifest co quyen micro
         run: |
           cat > android/app/src/main/AndroidManifest.xml <<'EOF'
