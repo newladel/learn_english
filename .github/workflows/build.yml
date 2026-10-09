@@ -26,7 +26,21 @@ jobs:
 
       - name: Restore custom files
         run: |
-          git checkout lib/ pubspec.yaml android/app/src/main/AndroidManifest.xml || true
+          git checkout lib/ pubspec.yaml || true
+
+      - name: Nang Kotlin version
+        run: |
+          sed -i 's/ext.kotlin_version = .*/ext.kotlin_version = "1.9.24"/' android/build.gradle
+          sed -i 's/org.jetbrains.kotlin.android.*version.*/org.jetbrains.kotlin.android" version "1.9.24"/' android/build.gradle || true
+          sed -i 's/id "org.jetbrains.kotlin.android" version .*/id "org.jetbrains.kotlin.android" version "1.9.24"/' android/settings.gradle || true
+          echo "=== android/build.gradle ==="
+          cat android/build.gradle
+          echo "=== android/settings.gradle ==="
+          cat android/settings.gradle
+
+      - name: Restore AndroidManifest
+        run: |
+          git checkout android/app/src/main/AndroidManifest.xml || true
 
       - run: flutter pub get
       - run: flutter build apk --release
