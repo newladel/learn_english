@@ -27,12 +27,24 @@ jobs:
       - name: Tao lai android moi
         run: flutter create . --project-name learn_english --org com.example --platforms=android
 
+      - name: Kiem tra file gradle
+        run: |
+          echo "=== Cac file trong android/app/ ==="
+          ls -la android/app/
+          echo "=== Cac file trong android/ ==="
+          ls -la android/
+
       - name: Sua minSdkVersion len 24
         run: |
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/' android/app/build.gradle
-          sed -i 's/minSdkVersion 21/minSdkVersion 24/' android/app/build.gradle
-          echo "=== android/app/build.gradle ==="
-          cat android/app/build.gradle
+          BUILD_FILE=$(find android/app -maxdepth 1 -name "build.gradle*" | head -1)
+          echo "File tim thay: $BUILD_FILE"
+          echo "=== Truoc khi sua ==="
+          cat "$BUILD_FILE"
+          sed -i 's/flutter\.minSdkVersion/24/g' "$BUILD_FILE"
+          sed -i 's/minSdkVersion 21/minSdkVersion 24/g' "$BUILD_FILE"
+          sed -i 's/minSdk = 21/minSdk = 24/g' "$BUILD_FILE"
+          echo "=== Sau khi sua ==="
+          cat "$BUILD_FILE"
 
       - name: Ghi lai AndroidManifest co quyen micro
         run: |
