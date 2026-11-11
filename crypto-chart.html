@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Crypto Chart</title>
+<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #131722; color: #d1d4dc; font-family: -apple-system, sans-serif; display: flex; flex-direction: column; height: 100vh; }
+  #toolbar { display: flex; gap: 8px; padding: 8px; background: #1e222d; border-bottom: 1px solid #2a2e39; flex-wrap: wrap; align-items: center; }
+  select, button { background: #2a2e39; color: #d1d4dc; border: 1px solid #363a45; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+  button:hover { background: #363a45; }
+  button.active { background: #2962ff; border-color: #2962ff; color: white; }
+  #price { font-size: 18px; font-weight: 600; margin-left: auto; padding-right: 10px; }
+  #charts { display: flex; flex-direction: column; flex: 1; }
+  #main { flex: 3; }
+  #rsi { flex: 1; border-top: 1px solid #2a2e39; }
+  #macd { flex: 1; border-top: 1px solid #2a2e39; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <select id="symbol">
+    <option value="BTCUSDT">BTC/USDT</option>
+    <option value="ETHUSDT">ETH/USDT</option>
+    <option value="SOLUSDT">SOL/USDT</option>
+    <option value="BNBUSDT">BNB/USDT</option>
+    <option value="XRPUSDT">XRP/USDT</option>
+    <option value="DOGEUSDT">DOGE/USDT</option>
+    <option value="ADAUSDT">ADA/USDT</option>
+  </select>
+
+  <select id="interval">
+    <option value="1m">1m</option>
+    <option value="5m">5m</option>
+    <option value="15m">15m</option>
+    <option value="1h" selected>1h</option>
+    <option value="4h">4h</option>
+    <option value="1d">1D</option>
+  </select>
+
+  <button data-ind="ema">EMA</button>
+  <button data-ind="bb">Bollinger</button>
+  <button data-ind="rsi">RSI</button>
+  <button data-ind="macd">MACD</button>
+
+  <div id="price">—</div>
+</div>
+
+<div id="charts">
+  <div id="main"></div>
+  <div id="rsi" class="hidden"></div>
+  <div id="macd" class="hidden"></div>
+</div>
+
+<script>
+// ============ Cấu hình chart ============
+const commonOpts = {
+  layout: { background: { color: '#131722' }, textColor: '#d1d4dc' },
+  grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+  rightPriceScale: { borderColor: '#363a45' },
+  timeScale: { borderColor: '#363a45', timeVisible: true, secondsVisible: false },
+  crosshair: { mode: 1 },
+};
+
+const mainChart = LightweightCharts.createChart(document.getElementById('main'), commonOpts);
+const candleSeries = mainChart.addCandlestickSeries({
+  upColor: '#26a69a', downColor: '#ef5350',
+  borderVisible: false, wickUpColor: '#26a69a', wickDownColor: '#ef5350',
+});
+const volumeSeries = mainChart.addHistogramSeries({
+  priceFormat: { type: 'volume' },
+  priceScaleId: '',
+  color: '#26a69a55',
+});
+volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.85, bottom: 0 } });
+
+// Overlay: EMA(20) + Bollinger
+const emaSeries = mainChart.addLineSeries({ color: '#f7b731', lineWidth: 2, title: 'EMA20' });
+const bbUpper = mainChart.addLineSeries({ color: '#2962ff', lineWidth: 1, lineStyle: 2 });
+const bbLower = mainChart.addLineSeries({ color: '#2962ff', lineWidth: 1, lineStyle: 2 });
+const bbMiddle = mainChart.addLineSeries({ color: '#2962ff', lineWidth: 1 });
+
+// RSI panel
+const rsiChart = LightweightCharts.createChart(document.getElementById('rsi'), commonOpts);
+const rsiSeries = rsiChart.addLineSeries({ color: '#b06ef2', lineWidth: 2 });
+rsiSeries.createPriceLine({ price: 70, color: '#ef5350', lineStyle: 2, lineWidth: 1 });
+rsiSeries.createPriceLine({ price: 30, color: '#26a69a', lineStyle: 2, lineWidth: 1 });
+
+// MACD panel
+const macdChart = LightweightCharts.createChart(document.getElementById('macd'), commonOpts);
+const macdLine = macdChart.addLineSeries({ color: '#2962ff', lineWidth: 2 });
+const signalLine = macdChart.addLineSeries({ color: '#f7b731', lineWidth: 2 });
+const macdHist = macdChart.addHistogramSeries({ priceFormat: { type: 'price', precision: 4, minMove: 0.0001 } });
+
+// ============ Chỉ báo (tính toán) ============
+function ema(values, period) {
+  const k = 2 / (period + 1);
+  const out = [];
+  let prev = values.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  out[period - 1] = prev;
+  for (let i = period; i < values.length; i++) {
+    prev = values[i] * k + prev * (1 - k);
+    out[i] = prev;
+  }
+  return out;
+}
+
+function bollinger(values, period = 20, mult = 2) {
+  const upper = [], middle = [], lower = [];
+  for (let i = period - 1; i < values.length; i++) {
+    const slice = values.slice(i - period + 1, i + 1);
+    const mean = slice.reduce((a, b) => a + b, 0) / period;
+    const variance = slice.reduce((s, v) => s + (v - mean) ** 2, 0) / period;
+    const sd = Math.sqrt(variance);
+    middle[i] = mean;
+    upper[i] = mean + mult * sd;
+    lower[i] = mean - mult * sd;
+  }
+  return { upper, middle, lower };
+}
+
+function rsi(values, period = 14) {
+  const out = [];
+  let gain = 0, loss = 0;
+  for (let i = 1; i <= period; i++) {
+    const d = values[i] - values[i - 1];
+    if (d >= 0) gain += d; else loss -= d;
+  }
+  gain /= period; loss /= period;
+  out[period] = 100 - 100 / (1 + gain / (loss || 1e-10));
+  for (let i = period + 1; i < values.length; i++) {
+    const d = values[i] - values[i - 1];
+    const g = d > 0 ? d : 0;
+    const l = d < 0 ? -d : 0;
+    gain = (gain * (period - 1) + g) / period;
+    loss = (loss * (period - 1) + l) / period;
+    out[i] = 100 - 100 / (1 + gain / (loss || 1e-10));
+  }
+  return out;
+}
+
+function macd(values, fast = 12, slow = 26, sig = 9) {
+  const emaFast = ema(values, fast);
+  const emaSlow = ema(values, slow);
+  const macdArr = [];
+  for (let i = 0; i < values.length; i++) {
+    if (emaFast[i] != null && emaSlow[i] != null) macdArr[i] = emaFast[i] - emaSlow[i];
+  }
+  const macdClean = macdArr.map(v => v ?? 0);
+  const signalRaw = ema(macdClean, sig);
+  const hist = [];
+  for (let i = 0; i < values.length; i++) {
+    if (macdArr[i] != null && signalRaw[i] != null) hist[i] = macdArr[i] - signalRaw[i];
+  }
+  return { macd: macdArr, signal: signalRaw, hist };
+}
+
+// ============ Load dữ liệu ============
+let symbol = 'BTCUSDT';
+let interval = '1h';
+let allCandles = []; // { time, open, high, low, close, volume }
+let ws = null;
+
+const indicators = { ema: false, bb: false, rsi: false, macd: false };
+
+function applyIndicatorVisibility() {
+  emaSeries.applyOptions({ visible: indicators.ema });
+  bbUpper.applyOptions({ visible: indicators.bb });
+  bbMiddle.applyOptions({ visible: indicators.bb });
+  bbLower.applyOptions({ visible: indicators.bb });
+  document.getElementById('rsi').classList.toggle('hidden', !indicators.rsi);
+  document.getElementById('macd').classList.toggle('hidden', !indicators.macd);
+  resizeCharts();
+  if (indicators.rsi) rsiChart.timeScale().fitContent();
+  if (indicators.macd) macdChart.timeScale().fitContent();
+}
+
+function computeAll() {
+  const closes = allCandles.map(c => c.close);
+  const times = allCandles.map(c => c.time);
+
+  if (indicators.ema) {
+    const e = ema(closes, 20);
+    emaSeries.setData(e.map((v, i) => v != null ? { time: times[i], value: v } : null).filter(Boolean));
+  }
+  if (indicators.bb) {
+    const bb = bollinger(closes, 20, 2);
+    const mk = arr => arr.map((v, i) => v != null ? { time: times[i], value: v } : null).filter(Boolean);
+    bbUpper.setData(mk(bb.upper));
+    bbMiddle.setData(mk(bb.middle));
+    bbLower.setData(mk(bb.lower));
+  }
+  if (indicators.rsi) {
+    const r = rsi(closes, 14);
+    rsiSeries.setData(r.map((v, i) => v != null ? { time: times[i], value: v } : null).filter(Boolean));
+  }
+  if (indicators.macd) {
+    const m = macd(closes);
+    const mk = arr => arr.map((v, i) => v != null ? { time: times[i], value: v } : null).filter(Boolean);
+    macdLine.setData(mk(m.macd));
+    signalLine.setData(mk(m.signal));
+    macdHist.setData(m.hist.map((v, i) => v != null ? {
+      time: times[i], value: v,
+      color: v >= 0 ? '#26a69a' : '#ef5350',
+    } : null).filter(Boolean));
+  }
+}
+
+async function loadData() {
+  // Đóng WS cũ
+  if (ws) { ws.onclose = null; ws.close(); ws = null; }
+
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=500`;
+  const res = await fetch(url);
+  const raw = await res.json();
+
+  allCandles = raw.map(k => ({
+    time: k[0] / 1000,
+    open: +k[1], high: +k[2], low: +k[3], close: +k[4],
+    volume: +k[5],
+  }));
+
+  candleSeries.setData(allCandles);
+  volumeSeries.setData(allCandles.map(c => ({
+    time: c.time, value: c.volume,
+    color: c.close >= c.open ? '#26a69a55' : '#ef535055',
+  })));
+
+  computeAll();
+  mainChart.timeScale().fitContent();
+  updatePriceDisplay(allCandles[allCandles.length - 1].close);
+
+  // WebSocket real-time
+  const stream = symbol.toLowerCase() + '@kline_' + interval;
+  ws = new WebSocket(`wss://stream.binance.com:9443/ws/${stream}`);
+  ws.onmessage = (ev) => {
+    const k = JSON.parse(ev.data).k;
+    const bar = {
+      time: k.t / 1000,
+      open: +k.o, high: +k.h, low: +k.l, close: +k.c,
+      volume: +k.v,
+    };
+    const last = allCandles[allCandles.length - 1];
+    if (last && last.time === bar.time) {
+      allCandles[allCandles.length - 1] = bar;
+    } else {
+      allCandles.push(bar);
+      if (allCandles.length > 800) allCandles.shift();
+    }
+    candleSeries.update(bar);
+    volumeSeries.update({ time: bar.time, value: bar.volume, color: bar.close >= bar.open ? '#26a69a55' : '#ef535055' });
+    computeAll();
+    updatePriceDisplay(bar.close);
+  };
+}
+
+function updatePriceDisplay(price) {
+  const el = document.getElementById('price');
+  el.textContent = price.toLocaleString('en-US', { maximumFractionDigits: 4 }) + ' USDT';
+  el.style.color = '#26a69a';
+}
+
+// ============ Xử lý UI ============
+document.getElementById('symbol').onchange = (e) => { symbol = e.target.value; loadData(); };
+document.getElementById('interval').onchange = (e) => { interval = e.target.value; loadData(); };
+
+document.querySelectorAll('button[data-ind]').forEach(btn => {
+  btn.onclick = () => {
+    const key = btn.dataset.ind;
+    indicators[key] = !indicators[key];
+    btn.classList.toggle('active', indicators[key]);
+    applyIndicatorVisibility();
+    computeAll();
+  };
+});
+
+// ============ Resize ============
+function resizeCharts() {
+  const mainEl = document.getElementById('main');
+  const mainW = mainEl.clientWidth, mainH = mainEl.clientHeight;
+  mainChart.applyOptions({ width: mainW, height: mainH });
+
+  if (indicators.rsi) {
+    const el = document.getElementById('rsi');
+    rsiChart.applyOptions({ width: el.clientWidth, height: el.clientHeight });
+  }
+  if (indicators.macd) {
+    const el = document.getElementById('macd');
+    macdChart.applyOptions({ width: el.clientWidth, height: el.clientHeight });
+  }
+}
+window.addEventListener('resize', resizeCharts);
+
+// Sync time scale giữa 3 chart
+mainChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
+  if (range && indicators.rsi) rsiChart.timeScale().setVisibleLogicalRange(range);
+  if (range && indicators.macd) macdChart.timeScale().setVisibleLogicalRange(range);
+});
+
+// ============ Khởi động ============
+loadData();
+setTimeout(resizeCharts, 100);
+</script>
+</body>
+</html>
